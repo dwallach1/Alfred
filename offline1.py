@@ -3,31 +3,32 @@
 import xgboost
 import pickle
 
-!gsutil cp gs://jaa-bucket2/quora/xgb_pickle /Users/jonahadler/Desktop/code/Quora
+
 import os
 gc_dir = "/quora/"
 file = "y_test"
-local_dir = "/Users/jonahadler/Desktop/code/Quora/"
-def unpickle_gc(file, gc_dir,local_dir):
-    os.system("gsutil cp gs://jaa-bucket2"+ gc_dir+file +" "+local_dir)
+local_dir = "/Users/jonahadler/Desktop/code/Alfred/pickle_jar/"
+def unpickle_gc(file, gc_dir,local_dir,download=False):
+    if(download):
+        os.system("gsutil cp gs://jaa-bucket2"+ gc_dir+file +" "+local_dir)
     with open(local_dir+file, 'rb') as f:
         content = pickle.load(f)
     return content
 
-y_test = unpickle_gc("y_test","/quora/","/Users/jonahadler/Desktop/code/Quora/")
-model = unpickle_gc("xgb_pickle","/quora/","/Users/jonahadler/Desktop/code/Quora/")
-X_test = unpickle_gc("X_test","/quora/","/Users/jonahadler/Desktop/code/Quora/")
-data = unpickle_gc("Quora_featured","/quora/","/Users/jonahadler/Desktop/code/Quora/")
+y_test = unpickle_gc("y_test",gc_dir,local_dir, download = False)
+model = unpickle_gc("xgb_pickle",gc_dir,local_dir)
+X_test = unpickle_gc("X_test",gc_dir,local_dir)
+data = unpickle_gc("Quora_featured",gc_dir,local_dir)
 
 
 joined = data.join(X_test, how="inner",lsuffix = "l")
 test_questions = joined[["question1","question2"]]
 
-X_test = X_test.dfet_index(drop=True)
-y_test = y_test.dfet_index(drop=True)
+X_test = X_test.reset_index(drop=True)
+y_test = y_test.reset_index(drop=True)
 
 y_hat = model.predict(X_test)
-y_hat
+
 df=  y_test.copy()
 
 df.columns = ["Actual"]
