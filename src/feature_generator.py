@@ -72,13 +72,21 @@ def vectorize(question, xDim):
 
 def printer(line): print ('\x1b[2K{}'.format(line), end='\r')
 
-def engineer_features(q1, q2, w2v=False, w2v_only=False, save=True):
+def engineer_features(q1=None, q2=None, data=None w2v=False, w2v_only=False, save=True):
     """
 
     :w2v: - boolean - flag indicating if we should load models and perform word2vec operations
     :w2v_only: - boolean - flag indicating if we should only do w2v (naive test to reduce sample size when trying to find duplicate)
     """
-    data = pd.DataFrame({'question1': [q1], 'question2': [q2]})
+    if not data:
+        if q1 == None or q2 == None:
+            print ('must pass either non None q1, q2 values or provide a dataset as the data parameter.')
+        if not (type(q1) is list):
+            q1 = [q1]
+        if not (type(q2) is list):
+            q2 = [q2]
+
+        data = pd.DataFrame({'question1': q1, 'question2': q2})
 
     if not os.path.exists('data'):
         os.mkdir('data')

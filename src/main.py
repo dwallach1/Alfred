@@ -22,7 +22,7 @@ def generate_dataset(connection, input_q):
     data = pd.DataFrame({'question1': input_col, 'question2': questions})
 
     print (data)
-
+    return data
 
 
 if __name__ == '__main__':
@@ -30,6 +30,9 @@ if __name__ == '__main__':
     connection = create_connection(DB_PATH)
     input_q = input('What is your question?\n')
     data = generate_dataset(connection, input_q)
+
+    data_with_features = engineer_features(data=data)
+    # predictions = model.fit(data_with_features)
 
     # q = Question('Test Question HHH')
     # val = q.insert_into_db()
