@@ -2,7 +2,7 @@ import sqlite3
 from sqlite3 import Error
 
 
-create = True
+create = False
 DB_PATH = '../questions.db'
 
 def create_DB(path):
@@ -44,7 +44,13 @@ def create_table(sql):
 
     return 0
 
-create_DB(DB_PATH)
+def select_all(conn):
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM questions")
+    rows = cur.fetchall()
+    return rows
+
+# create_DB(DB_PATH)
 table_sql = """CREATE TABLE IF NOT EXISTS questions (
                                     id integer PRIMARY KEY,
                                     q_text text NOT NULL,
@@ -52,4 +58,4 @@ table_sql = """CREATE TABLE IF NOT EXISTS questions (
                                     category text
                                 );"""
 
-create_table(table_sql)
+# create_table(table_sql)

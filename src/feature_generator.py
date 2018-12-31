@@ -14,35 +14,12 @@ from scipy.spatial.distance import cosine, cityblock, jaccard, canberra, euclide
 from nltk import word_tokenize
 stop_words = stopwords.words('english')
 import nltk
-# import gcsfs
-# import jonahs_things as ja
-# from pyemd import emd
 from gensim.similarities import WmdSimilarity
 import gzip
 
-# Pickling Supplies
-# base dir "/jaa-bucket2/"
-# gcs_pickle(data, "/jaa-bucket2/Quora_featured")
-# gcs_unpickle("/jaa-bucket2/Quora_featured")
 MODEL_PATH = 'data/GoogleNews-vectors-negative300.bin.gz'
 model = None
 norm_model = None
-
-def gcs_pickle(self, directory):
-  fs = gcsfs.GCSFileSystem()
-  with fs.open(directory, 'wb') as f:
-      pickle.dump(self, f)
-
-def gcs_unpickle(directory):
-  fs = gcsfs.GCSFileSystem()
-  with fs.open(directory, 'rb') as f:
-      element = pickle.load(f)
-  return element
-
-def get_file_general(location,file_name):
-    fs = gcsfs.GCSFileSystem(project='adlerj')
-    with fs.open(location+file_name) as f:
-        return f
 
 def wmd(s1, s2):
     s1 = str(s1).lower().split()
@@ -74,6 +51,24 @@ def sent2vec(s):
     M = np.array(M)
     v = M.sum(axis=0)
     return v / np.sqrt((v ** 2).sum())
+
+def load_models():
+    printer('loading model')
+    global model
+    model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
+
+    printer('loading normalized model')
+    global norm_model
+    norm_model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
+    norm_model.init_sims(replace=True)
+
+def vectorize(question, xDim):
+    printer('generating sent2vec represnetation for Question')
+    question_vectors = np.zeros((xDim, 300))
+    for i, q in enumerate(questions):
+        question_vectors[i, :] = sent2vec(q)
+    return question_vectors
+
 
 def printer(line): print ('\x1b[2K{}'.format(line), end='\r')
 
@@ -126,34 +121,21 @@ def engineer_features(q1, q2, w2v=False, w2v_only=False, save=True):
     data = pd.read_csv(outfile)
     data = data.drop(data.columns[0], axis=1)
 
-    question1_vectors = np.zeros((data.shape[0], 300))
-    error_count = 0
 
     if w2v:
-        printer('loading model')
-        global model
-        model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
+        load_models()
+
         printer('generating wmd')
         data['wmd'] = data.apply(lambda x: wmd(x['question1'], x['question2']), axis=1)
-
-        # you cannot just set norm_model = model because this creates a reference not a copy (I believe)
-        printer('loading normalized model')
-        global norm_model
-        norm_model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
-        norm_model.init_sims(replace=True)
         print('generating normalized wmd')
         data['norm_wmd'] = data.apply(lambda x: norm_wmd(x['question1'], x['question2']), axis=1)
 
-        question1_vectors = np.zeros((data.shape[0], 300))
-        error_count = 0
-
-        printer('generating word2vec represnetation for Question 1')
-        for i, q in tqdm(enumerate(data.question1.values)):
+        question1_vectors  = np.zeros((data.shape[0], 300))
+        for i, q in enumerate(data.question1.values):
             question1_vectors[i, :] = sent2vec(q)
 
-        printer('generating word2vec represnetation for Question 2')
         question2_vectors  = np.zeros((data.shape[0], 300))
-        for i, q in tqdm(enumerate(data.question2.values)):
+        for i, q in enumerate(data.question2.values):
             question2_vectors[i, :] = sent2vec(q)
 
         printer('generating cosine distance')
@@ -203,7 +185,8 @@ def engineer_features(q1, q2, w2v=False, w2v_only=False, save=True):
 
     print ('\x1b[2KSuccessfully generated features.')
 
+
 # Test
-q1 = 'Is piped text compatible with Web Services?'
-q2 = 'Can you used piped text in a Web Service?'
-engineer_features(q1, q2)
+# q1 = 'Is piped text compatible with Web Services?'
+# q2 = 'Can you used piped text in a Web Service?'
+# engineer_features(q1, q2)
