@@ -1,9 +1,9 @@
 import sqlite3
 from sqlite3 import Error
+import os
 
-
-create = False
-DB_PATH = '../questions.db'
+root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+DB_PATH = root_dir_path + '/questions.db'
 
 def create_DB(path):
     """ create a database connection to a SQLite database """
@@ -50,7 +50,7 @@ def select_all(conn):
     rows = cur.fetchall()
     return rows
 
-# create_DB(DB_PATH)
+create_DB(DB_PATH)
 table_sql = """CREATE TABLE IF NOT EXISTS questions (
                                     id integer PRIMARY KEY,
                                     q_text text NOT NULL,
@@ -58,4 +58,4 @@ table_sql = """CREATE TABLE IF NOT EXISTS questions (
                                     category text
                                 );"""
 
-# create_table(table_sql)
+create_table(table_sql)

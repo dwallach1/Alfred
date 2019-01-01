@@ -17,11 +17,14 @@ import nltk
 from gensim.similarities import WmdSimilarity
 import gzip
 
-MODEL_PATH = 'data/GoogleNews-vectors-negative300.bin.gz'
+root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+MODEL_PATH = root_dir_path + '/data/GoogleNews-vectors-negative300.bin.gz'
 model = None
 norm_model = None
 
 def wmd(s1, s2):
+
     s1 = str(s1).lower().split()
     s2 = str(s2).lower().split()
     stop_words = stopwords.words('english')
@@ -53,14 +56,17 @@ def sent2vec(s):
     return v / np.sqrt((v ** 2).sum())
 
 def load_models():
-    printer('loading model')
+    """" """
     global model
-    model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
+    if model == None:
+        printer('loading model')
+        model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
 
-    printer('loading normalized model')
     global norm_model
-    norm_model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
-    norm_model.init_sims(replace=True)
+    if norm_model == None:
+        printer('loading normalized model')
+        norm_model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
+        norm_model.init_sims(replace=True)
 
 def vectorize(question, xDim):
     printer('generating sent2vec represnetation for Question')
@@ -69,18 +75,17 @@ def vectorize(question, xDim):
         question_vectors[i, :] = sent2vec(q)
     return question_vectors
 
-
 def printer(line): print ('\x1b[2K{}'.format(line), end='\r')
 
-def engineer_features(q1=None, q2=None, data=None w2v=False, w2v_only=False, save=True):
+def engineer_features(q1=None, q2=None, data=None, w2v=True, save=True):
     """
 
     :w2v: - boolean - flag indicating if we should load models and perform word2vec operations
-    :w2v_only: - boolean - flag indicating if we should only do w2v (naive test to reduce sample size when trying to find duplicate)
     """
-    if not data:
+    if data is None:
         if q1 == None or q2 == None:
             print ('must pass either non None q1, q2 values or provide a dataset as the data parameter.')
+            return
         if not (type(q1) is list):
             q1 = [q1]
         if not (type(q2) is list):
@@ -183,13 +188,15 @@ def engineer_features(q1=None, q2=None, data=None w2v=False, w2v_only=False, sav
         printer('generating kur vector for Question 1')
         data['kur_q2vec'] = [kurtosis(x) for x in np.nan_to_num(question2_vectors)]
 
-
-        q1v = pd.DataFrame(question1_vectors)
-        q2v = pd.DataFrame(question2_vectors)
+        print ('\nshape of q1v is {}'.format(question1_vectors.shape))
+        q1v = pd.DataFrame(question1_vectors, columns=[str(i) for i in range(question1_vectors.shape[1])])
+        q2v = pd.DataFrame(question2_vectors, columns=[str(i)+'_q2' for i in range(question2_vectors.shape[1])])
 
         # Write data to pickle
-        data = pd.concat([data, q1v,q2v], axis=1)
-        data.to_pickle('data/Quora_featured')
+        data = pd.concat([data, q1v, q2v], axis=1)
+        data.to_pickle(root_dir_path + '/data/Quora_featured')
+        data.to_csv(root_dir_path + '/data/full_data.csv')
+        return data
 
     print ('\x1b[2KSuccessfully generated features.')
 

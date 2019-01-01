@@ -2,8 +2,12 @@
 # import uuid
 from random import randint
 import sqlite3
+import os
 import spacy
 nlp = spacy.load('en')
+
+root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+DB_PATH = root_dir_path + '/questions.db'
 
 
 class Question:
@@ -20,7 +24,7 @@ class Question:
 
     def insert_into_db(self):
         fields = 'id,q_text,category'
-        conn = sqlite3.connect('../questions.db')
+        conn = sqlite3.connect(DB_PATH)
         sql = ''' INSERT INTO questions ({0})
               VALUES(?,?,?) '''.format(fields)
         cur = conn.cursor()
@@ -30,5 +34,5 @@ class Question:
 
     def categorize(self, question):
         parsed_q = nlp(question)
-        subject = '-'.join([tok for tok in parsed_q if (tok.dep_ == "nsubj") ])
+        subject = '-'.join([str(tok) for tok in parsed_q if (tok.dep_ == "nsubj") ])
         return subject

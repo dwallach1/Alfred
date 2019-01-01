@@ -4,15 +4,20 @@ from database import select_all, create_connection
 
 import pandas as pd
 import numpy as np
+import pickle
+import time
+import os
+import xgboost
 
-DB_PATH = '../questions.db'
 
-# input_q = Question('Is piped text compatible with Web Services?')
-# engineer_features(q1, q2)
+root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+DB_PATH = root_dir_path + '/questions.db'
+MODEL_PATH = root_dir_path + '/pickle_jar/xgb_pickle'
+DATA_PATH = root_dir_path + '/data/Quora_featured'
+model = None
 
-
-def generate_dataset(connection, input_q):
-
+def generate_dataset(input_q):
+    connection = create_connection(DB_PATH)
     questions = [q[1] for q in select_all(connection)]
     print ('Found {} questions in the Database'.format(len(questions)))
     # for question in questions:
@@ -24,16 +29,38 @@ def generate_dataset(connection, input_q):
     print (data)
     return data
 
+def predict(data):
+    print ('Starting to engineer features')
+    start = time.time()
+    data_with_features = engineer_features(data=data)
+    end = time.time()
+    print('Took {}m to engineer features'.format((end - start)/60))
+
+    global model
+    if model is None:
+        file = open(MODEL_PATH, 'rb')
+        model = pickle.load(file)
+        file.close()
+
+    data_with_features.drop('question1', axis=1, inplace=True)
+    data_with_features.drop('question2', axis=1, inplace=True)
+    # print(data_with_features.head(10))
+    # print (data_with_features.columns)
+
+    data_with_features.to_csv(root_dir_path + '/data/full_data.csv')
+    y_hat = model.predict(data_with_features)
+    print ('Predictions are: ')
+    print(y_hat)
 
 if __name__ == '__main__':
-    # load_models()
-    connection = create_connection(DB_PATH)
-    input_q = input('What is your question?\n')
+
+    # input_q = input('What is your question?\n')
+    input_q = 'Can you used piped text in a Web Service?'
     data = generate_dataset(connection, input_q)
+    predict(data)
 
-    data_with_features = engineer_features(data=data)
-    # predictions = model.fit(data_with_features)
-
-    # q = Question('Test Question HHH')
+    # Temporary DB inserter
+    # q = Question('Is piped text compatible with Web Services?')
+    # q = Question('Can you remove formatting of multiple questions at once?')
     # val = q.insert_into_db()
     # print (val)
