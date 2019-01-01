@@ -20,8 +20,6 @@ def generate_dataset(input_q):
     connection = create_connection(DB_PATH)
     questions = [q[1] for q in select_all(connection)]
     print ('Found {} questions in the Database'.format(len(questions)))
-    # for question in questions:
-    #     print (question)
 
     input_col = [input_q for i in range(len(questions))]
     data = pd.DataFrame({'question1': input_col, 'question2': questions})
@@ -51,12 +49,13 @@ def predict(data):
     y_hat = model.predict(data_with_features)
     print ('Predictions are: ')
     print(y_hat)
+    return y_hat
 
 if __name__ == '__main__':
 
     # input_q = input('What is your question?\n')
     input_q = 'Can you used piped text in a Web Service?'
-    data = generate_dataset(connection, input_q)
+    data = generate_dataset(input_q)
     predict(data)
 
     # Temporary DB inserter

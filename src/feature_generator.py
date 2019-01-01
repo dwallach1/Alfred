@@ -140,7 +140,7 @@ def engineer_features(q1=None, q2=None, data=None, w2v=True, save=True):
 
         printer('generating wmd')
         data['wmd'] = data.apply(lambda x: wmd(x['question1'], x['question2']), axis=1)
-        print('generating normalized wmd')
+        printer('generating normalized wmd')
         data['norm_wmd'] = data.apply(lambda x: norm_wmd(x['question1'], x['question2']), axis=1)
 
         question1_vectors  = np.zeros((data.shape[0], 300))
@@ -188,7 +188,7 @@ def engineer_features(q1=None, q2=None, data=None, w2v=True, save=True):
         printer('generating kur vector for Question 1')
         data['kur_q2vec'] = [kurtosis(x) for x in np.nan_to_num(question2_vectors)]
 
-        print ('\nshape of q1v is {}'.format(question1_vectors.shape))
+        # print ('\nshape of q1v is {}'.format(question1_vectors.shape))
         q1v = pd.DataFrame(question1_vectors, columns=[str(i) for i in range(question1_vectors.shape[1])])
         q2v = pd.DataFrame(question2_vectors, columns=[str(i)+'_q2' for i in range(question2_vectors.shape[1])])
 
