@@ -50,12 +50,13 @@ def select_all(conn):
     rows = cur.fetchall()
     return rows
 
-create_DB(DB_PATH)
+
+
 table_sql = """CREATE TABLE IF NOT EXISTS questions (
-                                    id integer PRIMARY KEY,
+                                    id text PRIMARY KEY,
                                     q_text text NOT NULL,
-                                    w2v integer,
+                                    answer text,
                                     category text
                                 );"""
-
-create_table(table_sql)
+# create_DB(DB_PATH)
+# create_table(table_sql)

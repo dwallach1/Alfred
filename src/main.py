@@ -18,7 +18,9 @@ model = None
 
 def generate_dataset(input_q):
     connection = create_connection(DB_PATH)
-    questions = [q[1] for q in select_all(connection)]
+    question_objs = [Question(question=q[1], load=True, id=q[0], answer=q[2], category=q[3]) for q in select_all(connection)]
+    questions = [q.q_text for q in question_objs]
+    # questions = [q[1] for q in select_all(connection)]
     print ('Found {} questions in the Database'.format(len(questions)))
 
     input_col = [input_q for i in range(len(questions))]
@@ -59,7 +61,10 @@ if __name__ == '__main__':
     predict(data)
 
     # Temporary DB inserter
-    # q = Question('Is piped text compatible with Web Services?')
-    # q = Question('Can you remove formatting of multiple questions at once?')
-    # val = q.insert_into_db()
-    # print (val)
+    # q1 = Question('Is piped text compatible with Web Services?')
+    # q2 = Question('Can you remove formatting of multiple questions at once?')
+    # q1.create_question()
+    # q2.create_question()
+    # q3 = Question('Can you set a maximum amount of login attemps per account?')
+    # q3.create_question()
+    # q3.answer_question('Test Answer')
