@@ -58,12 +58,12 @@ def sent2vec(s):
 def load_models():
     """" """
     global model
-    if model == None:
+    if model is None:
         printer('loading model')
         model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
 
     global norm_model
-    if norm_model == None:
+    if norm_model is None:
         printer('loading normalized model')
         norm_model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
         norm_model.init_sims(replace=True)

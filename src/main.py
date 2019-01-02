@@ -30,11 +30,7 @@ def generate_dataset(input_q):
     return data
 
 def predict(data):
-    print ('Starting to engineer features')
-    start = time.time()
     data_with_features = engineer_features(data=data)
-    end = time.time()
-    print('Took {}m to engineer features'.format((end - start)/60))
 
     global model
     if model is None:
@@ -44,8 +40,6 @@ def predict(data):
 
     data_with_features.drop('question1', axis=1, inplace=True)
     data_with_features.drop('question2', axis=1, inplace=True)
-    # print(data_with_features.head(10))
-    # print (data_with_features.columns)
 
     data_with_features.to_csv(root_dir_path + '/data/full_data.csv')
     y_hat = model.predict(data_with_features)
@@ -54,15 +48,26 @@ def predict(data):
     return y_hat
 
 if __name__ == '__main__':
-
+    print ('Initalizing project & loading Models into memory...this can take around 5 minutes.')
+    start = time.time()
+    load_models()
+    end = time.time()
+    print ('Finished initalization steps in {0:.2f} minutes, ready to handle questions'.format((end - start)/60)))
     # input_q = input('What is your question?\n')
-    input_q = 'Can you used piped text in a Web Service?'
-    data = generate_dataset(input_q)
-    predict(data)
+    # input_q = 'Can you used piped text in a Web Service?'
+    # input_q = 'What should I do to be a great geologist?'
+    while True:
+        input_q = input('What is your question?\n')
+        if input_q == 'q' or input_q == 'quit':
+            print ('Closing project...')
+            return 0
+        data = generate_dataset(input_q)
+        predict(data)
 
     # Temporary DB inserter
     # q1 = Question('Is piped text compatible with Web Services?')
     # q2 = Question('Can you remove formatting of multiple questions at once?')
+    # q1 = Question('How can I be a good geologist?')
     # q1.create_question()
     # q2.create_question()
     # q3 = Question('Can you set a maximum amount of login attemps per account?')
