@@ -5,7 +5,12 @@ import os
 import spacy
 nlp = spacy.load('en')
 
-root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+try:
+    root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+except NameError:
+    root_dir_path = '/Users/jonahadler/Desktop/code' + "/Alfred"
+
+
 DB_PATH = root_dir_path + '/questions.db'
 
 

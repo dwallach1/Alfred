@@ -17,11 +17,18 @@ import nltk
 from gensim.similarities import WmdSimilarity
 import gzip
 
-root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-MODEL_PATH = root_dir_path + '/data/GoogleNews-vectors-negative300.bin.gz'
+
+
 model = None
 norm_model = None
+
+try:
+    root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    MODEL_PATH = root_dir_path + '/data/GoogleNews-vectors-negative300.bin.gz'
+except NameError:
+    root_dir_path = '/Users/jonahadler/Desktop/code' + "/Alfred"
+
 
 def wmd(s1, s2):
 
@@ -65,7 +72,9 @@ def load_models():
     global norm_model
     if norm_model is None:
         printer('loading normalized model')
-        norm_model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
+        # think were wasting time reloading here
+        #norm_model = gensim.models.KeyedVectors.load_word2vec_format(MODEL_PATH, binary=True)
+        norm_model = model
         norm_model.init_sims(replace=True)
 
 def vectorize(question, xDim):
