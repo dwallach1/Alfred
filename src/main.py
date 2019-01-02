@@ -1,15 +1,12 @@
 # coding: utf-8
-
-
 import pandas as pd
 import numpy as np
 import pickle
 import time
-import os
+import os, sys
 import xgboost
 import psutil
 import getpass
-
 
 try:
     root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -19,12 +16,25 @@ except NameError:
 
 from question import Question
 from feature_generator import load_models, vectorize, engineer_features
-from database import select_all, create_connection
+from database import select_all, create_connection, create_DB, create_table
 
 DB_PATH = root_dir_path + '/questions.db'
 MODEL_PATH = root_dir_path + '/pickle_jar/xgb_pickle'
 DATA_PATH = root_dir_path + '/data/Quora_featured'
 model = None
+
+def check_db_status():
+    if not os.path.exists(DB_PATH):
+        table_sql = """CREATE TABLE IF NOT EXISTS questions (
+                                            id text PRIMARY KEY,
+                                            q_text text NOT NULL,
+                                            answer text,
+                                            category text
+                                        );"""
+        create_DB(DB_PATH)
+        create_table(table_sql)
+        print ('Successfully created Database, ready to load model')
+    print ('Database already created, ready to load model.')
 
 def generate_dataset(input_q):
     connection = create_connection(DB_PATH)
@@ -53,12 +63,13 @@ def predict(data):
 
     data_with_features.to_csv(root_dir_path + '/data/full_data.csv')
     y_hat = model.predict_proba(data_with_features)[:,1]
-    print ('Predictions are: ')
-    print(y_hat)
+    print ('\nPredictions are: ')
+    print ([round(y, 2) for y in y_hat])
     return y_hat
 
 
 if __name__ == '__main__' and getpass.getuser()!="jonahadler":
+    check_db_status()
     print ('Initalizing project & loading Models into memory...this can take around 5 minutes.')
     start = time.time()
     load_models()
@@ -79,9 +90,10 @@ if __name__ == '__main__' and getpass.getuser()!="jonahadler":
         data = generate_dataset(input_q)
         data["p(match)"] = predict(data)
         results = data[["question1","question2","p(match)"]]
-        display(results)
-
-
+        try:
+            display(results)
+        except NameError:
+            pass
 
     # Temporary DB inserter
     # q1 = Question('Is piped text compatible with Web Services?')
