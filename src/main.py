@@ -1,3 +1,4 @@
+# coding: utf-8
 from question import Question
 from feature_generator import load_models, vectorize, engineer_features
 from database import select_all, create_connection
@@ -8,6 +9,7 @@ import pickle
 import time
 import os
 import xgboost
+import psutil
 
 
 root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -52,7 +54,9 @@ if __name__ == '__main__':
     start = time.time()
     load_models()
     end = time.time()
-    print ('Finished initalization steps in {0:.2f} minutes, ready to handle questions'.format((end - start)/60)))
+    print ('Finished initalization steps in {0:.2f} minutes, ready to handle questions'.format((end - start)/60))
+    process = psutil.Process(os.getpid())
+    print ('Current using {0:.2f}% of the process\' memory'.format(process.memory_percent()))
     # input_q = input('What is your question?\n')
     # input_q = 'Can you used piped text in a Web Service?'
     # input_q = 'What should I do to be a great geologist?'
@@ -60,7 +64,7 @@ if __name__ == '__main__':
         input_q = input('What is your question?\n')
         if input_q == 'q' or input_q == 'quit':
             print ('Closing project...')
-            return 0
+            sys.exit(0)
         data = generate_dataset(input_q)
         predict(data)
 
