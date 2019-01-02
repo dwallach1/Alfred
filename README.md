@@ -7,5 +7,7 @@ It will ask `What is your question?` and then spit out a prediction array for ea
 
 Example:
 > What is your question?
+<br>
 > Is piped text compatible with Web Services?
+<br>
 > [0.12, 0.00, ... 0.92, 0.18, 0.02]
