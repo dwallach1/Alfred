@@ -7,6 +7,7 @@ import os, sys
 import xgboost
 import psutil
 import getpass
+from halo import Halo
 
 try:
     root_dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -33,6 +34,18 @@ def check_db_status():
                                         );"""
         create_DB(DB_PATH)
         create_table(table_sql)
+
+        BASE_QUESTIONS_PATH = root_dir_path + '/data/base_questions.csv'
+        if os.path.exists(BASE_QUESTIONS_PATH):
+            df = pd.read_csv(BASE_QUESTIONS_PATH, header=[0, 1])
+            spinner = Halo(text='Populating Database', spinner='dots')
+            spinner.start()
+            for index, row in df.iterrows():
+               # print ('{} -> {}'.format(row['Question'], row['Answer']))
+                q = Question(str(row['Question']))
+                q.create_question()
+                q.answer_question(str(row['Answer']))
+            spinner.stop()
         print ('Successfully created Database, ready to load model')
     print ('Database already created, ready to load model.')
 
@@ -67,12 +80,14 @@ def predict(data):
     print ([round(y, 2) for y in y_hat])
     return y_hat
 
-
 if __name__ == '__main__' and getpass.getuser()!="jonahadler":
+    start = time.time()
     check_db_status()
     print ('Initalizing project & loading Models into memory...this can take around 5 minutes.')
-    start = time.time()
+    spinner = Halo(text='Loading Question Matching Model', spinner='dots')
+    spinner.start()
     load_models()
+    spinner.stop()
     end = time.time()
     print ('Finished initalization steps in {0:.2f} minutes, ready to handle questions'.format((end - start)/60))
 
