@@ -25,6 +25,8 @@ DATA_PATH = root_dir_path + '/data/Quora_featured'
 model = None
 
 def check_db_status():
+    spinner = Halo(text='Populating Database', spinner='dots')
+    spinner.start()
     if not os.path.exists(DB_PATH):
         table_sql = """CREATE TABLE IF NOT EXISTS questions (
                                             id text PRIMARY KEY,
@@ -34,20 +36,16 @@ def check_db_status():
                                         );"""
         create_DB(DB_PATH)
         create_table(table_sql)
-
         BASE_QUESTIONS_PATH = root_dir_path + '/data/base_questions.csv'
         if os.path.exists(BASE_QUESTIONS_PATH):
             df = pd.read_csv(BASE_QUESTIONS_PATH, header=[0, 1])
-            spinner = Halo(text='Populating Database', spinner='dots')
-            spinner.start()
             for index, row in df.iterrows():
                # print ('{} -> {}'.format(row['Question'], row['Answer']))
                 q = Question(str(row['Question']))
                 q.create_question()
                 q.answer_question(str(row['Answer']))
-            spinner.stop()
-        print ('Successfully created Database, ready to load model')
-    print ('Database already created, ready to load model.')
+
+    spinner.stop_and_persist(symbol='✅ '.encode('utf-8'), text='Populated/Loaded Database')
 
 def generate_dataset(input_q):
     connection = create_connection(DB_PATH)
@@ -83,11 +81,10 @@ def predict(data):
 if __name__ == '__main__' and getpass.getuser()!="jonahadler":
     start = time.time()
     check_db_status()
-    print ('Initalizing project & loading Models into memory...this can take around 5 minutes.')
-    spinner = Halo(text='Loading Question Matching Model', spinner='dots')
+    spinner = Halo(text='Loading Question Matching Model (could take up to 5 minutes)', spinner='dots')
     spinner.start()
     load_models()
-    spinner.stop()
+    spinner.stop_and_persist(symbol='✅ '.encode('utf-8'), text='Loaded Question Matching Model')
     end = time.time()
     print ('Finished initalization steps in {0:.2f} minutes, ready to handle questions'.format((end - start)/60))
 
