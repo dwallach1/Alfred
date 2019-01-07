@@ -38,13 +38,13 @@ def check_db_status():
         create_table(table_sql)
         BASE_QUESTIONS_PATH = root_dir_path + '/data/base_questions.csv'
         if os.path.exists(BASE_QUESTIONS_PATH):
-            df = pd.read_csv(BASE_QUESTIONS_PATH, header=[0, 1])
+            df = pd.read_csv(BASE_QUESTIONS_PATH, header=0)
+            df = df.dropna()
             for index, row in df.iterrows():
-               # print ('{} -> {}'.format(row['Question'], row['Answer']))
-                q = Question(str(row['Question']))
+                # print ('{} -> {}'.format(type(row['Question']), type(row['Answer'])))
+                q = Question(row['Question'])
                 q.create_question()
-                q.answer_question(str(row['Answer']))
-
+                q.answer_question(row['Answer'])
     spinner.stop_and_persist(symbol='✅ '.encode('utf-8'), text='Populated/Loaded Database')
 
 def generate_dataset(input_q):
@@ -74,14 +74,16 @@ def predict(data):
 
     data_with_features.to_csv(root_dir_path + '/data/full_data.csv')
     y_hat = model.predict_proba(data_with_features)[:,1]
-    print ('\nPredictions are: ')
-    print ([round(y, 2) for y in y_hat])
+    # print ('\nPredictions are: ')
+    idx = np.argmin(y_hat)
+    # print ([round(y, 2) for y in y_hat])
+    print ('Most Similar Question is: {0} -- [Probability: {1}]'.format(data['question1'][idx]), y_hat[idx])
     return y_hat
 
 if __name__ == '__main__' and getpass.getuser()!="jonahadler":
     start = time.time()
     check_db_status()
-    spinner = Halo(text='Loading Question Matching Model (could take up to 5 minutes)', spinner='dots')
+    spinner = Halo(text='Loading Question Matching Engine (could take up to 5 minutes)', spinner='dots')
     spinner.start()
     load_models()
     spinner.stop_and_persist(symbol='✅ '.encode('utf-8'), text='Loaded Question Matching Model')
